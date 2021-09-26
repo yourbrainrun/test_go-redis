@@ -11,6 +11,7 @@ import (
 	"os"
 	"reflect"
 	"strconv"
+	"strings"
 	"test_go-redis/drivers"
 	"test_go-redis/helpers"
 	"time"
@@ -126,7 +127,6 @@ func scan() {
 
 	var cursor uint64 = 0
 	var count int64 = 1
-	var curCount int64 = 0
 
 	for {
 		result, retCursor, err := rdb.Scan(ctx, cursor, "rtx:*", count).Result()
@@ -135,11 +135,21 @@ func scan() {
 			return
 		}
 		for index, value := range result {
-			curCount++
-			fmt.Println(index, "=", value)
+			tempSlice := strings.Split(value, ":")
+			fmt.Println(index, "=", value, tempSlice[1])
+			countT, err := rdb.Exists(ctx, value).Result()
+			if err != nil {
+				return
+			}
+			fmt.Println(countT)
+
+			countT, err = rdb.Exists(ctx, "noon").Result()
+			if err != nil {
+				return
+			}
+			fmt.Println(countT)
 		}
 
-		fmt.Println(cursor, "cursor")
 		if cursor <= 0 {
 			break
 		}
